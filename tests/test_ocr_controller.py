@@ -2,6 +2,7 @@ import unittest
 from io import BytesIO
 from main import app
 
+
 class TestOCRController(unittest.TestCase):
 
     def setUp(self):
@@ -25,6 +26,7 @@ class TestOCRController(unittest.TestCase):
     def tearDown(self):
         # Clean up any state here if necessary
         pass
+
 
 if __name__ == '__main__':
     unittest.main()
