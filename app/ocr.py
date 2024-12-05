@@ -1,17 +1,18 @@
+from concurrent.futures import ThreadPoolExecutor
+import pytesseract
+import imutils
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
 import os
 import logging
 import matplotlib
 matplotlib.use('Agg')
 
-import matplotlib.pyplot as plt
-import cv2
-import numpy as np
-import imutils
-import pytesseract
-from concurrent.futures import ThreadPoolExecutor
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
+
 
 def show_img(img, title="Image", debug=False):
     """Displays an image using matplotlib."""
@@ -23,6 +24,7 @@ def show_img(img, title="Image", debug=False):
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         plt.show()
 
+
 def detect_orientation(image):
     """Detects the orientation of the text and returns the angle to rotate."""
     try:
@@ -33,6 +35,7 @@ def detect_orientation(image):
         logging.error(f"Error detecting orientation: {e}")
         return 0  # Default to no rotation if detection fails
 
+
 def correct_orientation(image):
     """Corrects the orientation of the image based on the detected rotation."""
     rotation = detect_orientation(image)
@@ -40,6 +43,7 @@ def correct_orientation(image):
         # Rotate the image to the correct orientation
         image = imutils.rotate_bound(image, rotation)
     return image
+
 
 def preprocess_image(image_file, method="default", debug=False):
     """Pre-processes the image to improve text detection."""
@@ -49,19 +53,23 @@ def preprocess_image(image_file, method="default", debug=False):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
-    processed_img = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 9)
+    processed_img = cv2.adaptiveThreshold(
+        blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 9)
 
     return processed_img
+
 
 def extract_text_from_image(image):
     """Extracts text from the pre-processed image using Tesseract."""
     try:
         custom_config = r'--tessdata-dir "./tessdata" --psm 6'
-        text = pytesseract.image_to_string(image, config=custom_config)  # Assume a single block of text
+        text = pytesseract.image_to_string(
+            image, config=custom_config)  # Assume a single block of text
         return text
     except Exception as e:
         logging.error(f"Error extracting text: {e}")
         return ""
+
 
 def preprocess_and_extract_text(image_file, method="default", debug=False):
     """Preprocesses the image and extracts text."""
@@ -69,10 +77,12 @@ def preprocess_and_extract_text(image_file, method="default", debug=False):
     extracted_text = extract_text_from_image(processed_img)
     return extracted_text
 
+
 def process_images(image_files, method="default", debug=False):
     """Processes multiple images concurrently and extracts text from each."""
     with ThreadPoolExecutor(max_workers=4) as executor:
-        results = list(executor.map(lambda img_file: preprocess_and_extract_text(img_file, method, debug), image_files))
+        results = list(executor.map(lambda img_file: preprocess_and_extract_text(
+            img_file, method, debug), image_files))
     return results
 
 # Example usage
